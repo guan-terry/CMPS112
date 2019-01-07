@@ -1,0 +1,63 @@
+Lab0 · Introduction to Unix                                     1 of 1
+$Id: lab0-intro-unix.mm,v 1.11 2018-09-27 13:27:14-07 - - $
+PWD: /afs/cats.ucsc.edu/courses/cmps112-wm/Assignments/
+lab0-intro-unix
+URL: http://www2.ucsc.edu/courses/cmps112-wm/:/Assignments/
+lab0-intro-unix/
+
+This lab0-intro-unix will not be graded and there is no credit for it.
+However, it is important you understand the Unix command line and sub-
+mit procedure before you actually use it in the first assignment.
+
+Make sure you know how to submit files.  Submit these files to lab0.
+Verify that the submit actually worked by looking in the submit direc-
+tory for your username.  The find(1) command is very useful for things
+like this.
+
+The submit command copies your files into a directory
+   /afs/cats.ucsc.edu/class/cmps112-wm.f18/lab0/$USER/
+and prefixes each file with a sequence number.  You can see the names
+of the files, but not their contents.  The submit directory is not ac-
+cessible using a web browser.
+
+Prior experience with Unix is assumed.
+Attend a lab section to ask questions if you don't understand how sub-
+mit and the Unix command line in general works.  The TA can explain
+such things.
+
+You may wish to review some of the Unix labs in
+   /afs/cats.ucsc.edu/courses/cmps012b-wm/Labs-cmps012m/
+   · lab0u-intro-unix/
+   · lab1u-shells-etc/
+   · lab2u-utilities-c-make/
+
+Also read the submit checklist:
+   /afs/cats.ucsc.edu/courses/cmps112-wm/Syllabus/submit-checklist/
+Write a program in some language and then submit it.  See the submit
+checklist to verify what you have submitted.  If you are not sure, at-
+tend a lab and ask the TA to verify the submit.
+
+If you choose to do pair programming, carefully read the pair program-
+ming guidelines, including details on how to submit a PARTNER file:
+   /afs/cats.ucsc.edu/courses/cmps112-wm/Syllabus/pair-programming/
+Points will be deducted for an incorrect PARTNER file.
+
+To make available scripts such as checksource, partnercheck, etc., put
+the following in your $PATH environment variable:
+   /afs/cats.ucsc.edu/courses/cmps112-wm/bin/
+This can be done with the following bash(1) command:
+   export PATH=$PATH:/afs/cats.ucsc.edu/courses/cmps112-wm/bin
+
+If you put this command in your ~/.bash_profile, it will automatically
+be executed every time your log in.  Add similar paths to the exe-
+cutable binaries for the various languages we will be using this quar-
+ter.  See http://www.linfo.org/path_env_var.html for more information.
+If bash(1) is not your login shell, it is recommended that your change
+your login shell to bash.  To find out how to do this, log into unix.
+ucsc.edu and type the command chsh.
+
+Questions of general interest should be posted to Piazza (https://pi-
+azza.com), rather than sent via email, since that usually gets a
+faster response.  Use your cruzid@ucsc.edu to log into the Piazza fo-
+rum for this class.
+

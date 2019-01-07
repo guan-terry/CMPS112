@@ -1,0 +1,3 @@
+checksource: line length > 72 characters
+   file "pmake": 1 errors: line 211
+checksource: TOTAL COMPLAINTS: 1

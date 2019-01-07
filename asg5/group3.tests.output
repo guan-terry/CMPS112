@@ -1,0 +1,24 @@
+GNU Prolog 1.4.4 (64 bits)
+Compiled Nov  6 2014, 18:04:28 with gcc
+By Daniel Diaz
+Copyright (C) 1999-2013 Daniel Diaz
+| ?- $Id: group3.tests,v 1.2 2016-11-21 14:06:16-08 - - $
+
+yes
+| ?- compiling /afs/cats.ucsc.edu/users/l/teguan/cmps112/asg5/database.pl for byte code...
+/afs/cats.ucsc.edu/users/l/teguan/cmps112/asg5/database.pl compiled, 76 lines read - 11165 bytes written, 8 ms
+
+(2 ms) yes
+| ?- compiling /afs/cats.ucsc.edu/users/l/teguan/cmps112/asg5/functions.pl for byte code...
+/afs/cats.ucsc.edu/users/l/teguan/cmps112/asg5/functions.pl:52: warning: singleton variables [Curr_time,Seq,Visits] for try_sequence/5
+/afs/cats.ucsc.edu/users/l/teguan/cmps112/asg5/functions.pl:92-101: warning: singleton variables [Nada] for write_visits/1
+/afs/cats.ucsc.edu/users/l/teguan/cmps112/asg5/functions.pl compiled, 148 lines read - 13820 bytes written, 9 ms
+
+(1 ms) yes
+| ?- you are already at sjc
+
+yes
+| ?- you are already at dfw
+
+yes
+| ?- 

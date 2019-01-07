@@ -1,0 +1,9 @@
+rm queue.class qtest.class queue\$emptyexn.class queue\$node.class
+rm: cannot remove ‘queue.class’: No such file or directory
+rm: cannot remove ‘qtest.class’: No such file or directory
+rm: cannot remove ‘queue$emptyexn.class’: No such file or directory
+rm: cannot remove ‘queue$node.class’: No such file or directory
+make: [Makefile:24: clean] Error 1 (ignored)
+rm qtest
+rm: cannot remove ‘qtest’: No such file or directory
+make: [Makefile:27: spotless] Error 1 (ignored)

@@ -1,0 +1,323 @@
+#!/usr/local/bin/perl
+
+use strict;
+use warnings;
+use Data::Dumper;
+
+my %strsignal = (
+    1 => "Hangup",
+    2 => "Interrupt",
+    3 => "Quit",
+    4 => "Illegal instruction",
+    5 => "Trace/breakpoint trap",
+    6 => "Aborted",
+    7 => "Bus error",
+    8 => "Floating point exception",
+    9 => "Killed",
+   11 => "Segmentation fault",
+   13 => "Broken pipe",
+   14 => "Alarm clock",
+   15 => "Terminated",
+   16 => "Stack fault",
+   17 => "Child exited",
+   18 => "Continued",
+   19 => "Stopped (signal)",
+   20 => "Stopped",
+   21 => "Stopped (tty input)",
+   22 => "Stopped (tty output)",
+   24 => "CPU time limit exceeded",
+   25 => "File size limit exceeded",
+   26 => "Virtual timer expired",
+   27 => "Profiling timer expired",
+   28 => "Window changed",
+   29 => "I/O possible",
+   30 => "Power failure",
+   31 => "Bad system call",
+);
+
+$0 =~ s|.*/||;
+my $makeFile = "Makefile";
+
+my $term_signal = 0;
+my $core_dumped = 0;
+my $exit_status = 0;
+
+my $executeCommands;
+my %deps;
+my %hashMac;
+my %hashDeps;
+my %hashCommand;
+my @macroArray = ();
+my $currTarget;
+my @inputs = ();
+my @command =();
+my $runTarget;
+my $argCheck = 0;
+my $f_nme;
+
+if ($ARGV[1]) { $runTarget = $ARGV[1]; $argCheck = 1;}
+if ($ARGV[0]) { $runTarget = $ARGV[0]; $argCheck = 1;}
+
+open my $file, "<$makeFile" or warn "$makeFile: $!\n" and next;
+#print "this";
+while (<$file>) {
+   #print "this ran";
+   my $line = $_;
+   #chomp $line;
+   my $comment = substr($line, 0, 1);
+   if ($comment ne "#") {
+      #if comment does not contain a tab and contains and equal
+      if ($line =~ /=/ && $line !~ /\t/ ) {
+         #print "line ran and line is $line";
+         push(@macroArray, $line);
+      } elsif ($line =~ /:/ && $line !~ /\t/) {
+         substr ($line, index($line, ":", 0), 0) = ' ';
+         my @words = split m/\s+/, $line;
+         $currTarget = $words[0];
+         if ($argCheck == 0) {
+            $argCheck = 1;
+            $runTarget = $currTarget;
+         }
+#         print "@words \n";
+         my %params = map {$_ => 1} @inputs;
+         push @inputs, $line;
+      } elsif ($line =~ /\t/) {
+         $line =~ s/^\t+//;
+         my $commandLine = "$currTarget " . "$line";
+         push (@command, $commandLine);
+         
+      }
+
+   }
+}
+#print "run Target is the following: $runTarget";
+#print Dumper(@macroArray);
+#print "array inputs is @inputs";
+#print "\n\n\n";
+close $file;
+
+sub parse_dep ($) {
+   my ($line) = @_;
+  # print "LINE IS ---------------------- $line";
+   return undef unless $line =~ m/^(\S+)\s*=\s*(.*?)\s*$/;
+   #print "THISG RAN RIGHT GOT HERE OMG FUCK";
+   my ($target ,$dependency) = ($1, ($2));
+   my @dependencies = split m/\s+/, $dependency;
+   my @val = split m/\s+/, $dependency;
+   my @returnVal = ();
+   foreach(@val) {push (@returnVal, $_); }
+   return $target, \@val;
+}
+
+for my $macro (@macroArray) {
+  # print "macro is defined as the following: $macro\n";
+   my ($mac, $val) = parse_dep $macro;
+   print "$0: syntax error: $macro\n" and next unless defined $mac;
+   $hashMac{$mac} = $val;
+#   print "hashMac at $mac is $val";
+}
+#print Dumper(\%hashMac);
+
+
+sub parseDependencies($) {
+   my($line) = @_;
+   my @return = ();
+   return undef unless $line =~ m/^(\S+)\s*:\s*(.*?)\s*$/;
+   my ($target, $dependency) = ($1, ($2));
+   my @dependencies = split m/\s+/, $dependency;
+   #print Dumper(@dependencies);
+   if (substr ($target,0, 1) eq "\$") {
+      my $tmpTarget = substr($target, 2, (length($target) - 3));
+      my @newTarget = $hashMac{$tmpTarget};
+      $target = "" . "@{$newTarget[0]}";
+   }
+   foreach (@dependencies) {
+      my $firstChar = substr($_, 0 ,1);
+      if ($firstChar eq "\$") {
+         my $hashRef = substr($_, 2, (length($_) -3));
+         #print "hash reference is $hashRef\n";
+         my @newDeps = $hashMac{$hashRef};
+         #print "Dumper at newDeps is:". Dumper(@newDeps);
+         for (my $i = 0; $i < @newDeps; $i++) {
+            my @inside = $newDeps[$i];
+            for (my $j = 0; $j <@inside; $j++) {
+               push(@return, @{$inside[$j]});
+            }
+         }
+      } else {push (@return, $_);}
+   }
+   #print @return;
+   return $target, \@return;
+   
+}
+
+#print Dumper(@inputs);
+
+for my $input (@inputs) {
+#   print "input for each inputs is $input";
+   my ($target, $depen) = parseDependencies $input;
+   print"$0: syntax error: $input\n" and next unless defined $target;
+   $hashDeps{$target} = $depen;
+   
+   #print Dumper(\%hashDeps);
+}
+#print Dumper(\%hashDeps);
+#print "command is @command";
+for my $commands (@command) {
+   my @pushcommand = ();
+   my $realCommand = "";
+   my $tgt = substr ($commands, 0 , index ($commands, ' '));
+   my $cmds = substr ($commands, index ($commands, ' ') + 1);
+   #print "tgt is $tgt and cmds is $cmds";
+   my @commandWord = split m/\s+/, $cmds;
+   foreach(@commandWord) {
+      $realCommand = "$realCommand" . "$_ ";
+   }
+   $realCommand =~ s/\s+$//;
+   push @pushcommand, $realCommand;
+  # print $realCommand;
+   $hashCommand{$tgt} = \@pushcommand;
+}  
+
+sub replaceMacro ($) {
+   my @cmdWord = split m/\s+/, $_;
+   my $return = "";
+#   print Dumper(@cmdWord);
+   foreach (@cmdWord) {
+      if ($_ =~ /\$/) {
+         my $tmp  = substr ($_, 2 ,(length ($_) - 3));
+#         print "tmp is $tmp\n";
+         if (exists $hashMac{$tmp}) {
+             my @holder = $hashMac{$tmp};
+             foreach (@holder) {
+                $return = "$return". "@{$_} ";
+             }
+         }else {$return = "$return"."$_ "; } 
+      } else {$return = "$return" . "$_ "; }
+   }
+  # print "return is $return\n";
+   $_ = $return;
+}
+
+sub replaceLess($) {
+   my @cmdWords = split m/\s+/, $_;
+   my $return = "";
+   foreach(@cmdWords) {
+      if ($_ =~/\$/) {
+         if ($_ =~ /</) {
+            $executeCommands = ".c" if $executeCommands eq".o";
+            $executeCommands = ".java" if $executeCommands eq ".class";
+            $executeCommands =~ s/[^\.]*//;
+            $return = "$return". "$f_nme". "$executeCommands";
+
+
+         }
+      } else {$return = "$return" . "$_"; }
+   }
+   $_ = $return;
+} 
+
+#print Dumper(\%hashCommand);
+sub runCommands ($);
+sub runCommands ($) {
+   my ($target) = @_;
+   my @dependents = ($hashDeps{$target});
+   my $commandRun = $hashCommand{$target};
+   foreach (@dependents) {
+      my @dep = @{ $_ } if $_;
+      print "@dep\n";
+      foreach (@dep) {
+         
+         if (-e $_) {
+            #print "this ran";
+         } elsif ($hashCommand{$_}) {
+            $executeCommands = join (" ",@{$hashDeps{$_}});
+            $executeCommands =~s/[^\.]*//;
+            #print "this ran";
+            runCommands($_);
+         } else {
+            $executeCommands = $_;
+            if($_ =~ /%/) {}
+            else {
+               $f_nme = $_;
+               $f_nme =~ s/[\.].*//;
+            }
+            $executeCommands =~ s/[\.].*//;
+            
+            #$executeCommands = '%'. "$executeCommands";
+            #print "executeCommands is $executeCommands";
+            if ($hashDeps{$executeCommands}) { runCommands($executeCommands); }
+         }
+      }
+   }
+#   print "target is $target\n";
+   if (exists ($hashCommand{$target})) {
+      if (!@{$hashCommand{$target}}) {
+#         print "this ran\n";
+         $executeCommands = $target; $f_nme = $target;
+         $executeCommands =~ s/[^\.]*//;
+         $f_nme =~ s/[^\.]*//;
+         $target = "\%". $f_nme;
+         $commandRun = $hashCommand{$target};
+      }
+   }
+   foreach ($commandRun) {
+      my @list = @{$commandRun} if $commandRun;
+#      print "this ran once and dumper is". Dumper @list;
+      foreach(@list) {
+         my $execute = ($_);
+         my $dash = substr($execute,0, 1);
+#         print "EXECUTE IS --------- $execute \n";
+#         print "dash is: $dash \n";
+          while ($_ =~/\$/) {
+            #print "replace macro being passed is $execute \n";
+            $_ = replaceMacro $execute;
+            chop $_;
+            #print "after replaceMacro $_\n";
+         }
+
+         while ($_ =~/\$</) {
+            $_ = replaceLess $execute;
+            chop $_;
+         }
+         if ($execute = /@/) {
+#            print "before substr ($_)\n";
+            $_ = substr($_, index($_, '@') + 1);
+#            print "after substr $_\n";
+            system($_); # == 0 or die "$_ Error $?";
+            $term_signal = $? & 0x7F;
+            $core_dumped = $? & 0x80;
+            $exit_status = ($? >> 8) & 0xFF;
+         }elsif ($dash =~ /-/){
+            #print "DASH RAN";
+#            $execute = substr($execute, 1);
+#            print $execute;
+            $_ =~ s/^- *//;
+            print "$_\n";
+            system($_) ==0 or print 
+               "pmake:[***] Error $? (ignored)\n";
+           # $term_signal = $? & 0x7F;
+           # $core_dumped = $? & 0x80;
+           # $exit_status = ($? >> 8) & 0xFF;
+         }else{
+            print "$_\n";
+#            print "THIS RANNNN \n";
+            system($_); #== 0 or die "$_ Error $?";
+            $term_signal = $? & 0x7F;
+            $core_dumped = $? & 0x80;
+            $exit_status = ($? >> 8) & 0xFF;
+         }
+      }
+   }
+
+#   print "term signal: $term_signal 
+#   core_dumped $core_dumped exit status: $exit_status\n";
+   if ($exit_status == 1) {
+      print "make: *** [Makefile   ] error $exit_status\n";
+   }
+}
+
+#print Dumper(\%hashCommand);
+#print Dumper(\%hashDeps);
+print "runTarget is $runTarget\n";
+runCommands($runTarget);
